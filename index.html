@@ -346,8 +346,7 @@ function stepGame(s, dtMs){
   if(s.reqRestart){ s.reqRestart=false; loadBay(s, s.bay); s.idleMs=0; ev.restart=true; return ev; }
   if(s.reqPrev){ s.reqPrev=false; if(s.bay>0){ s.bay--; loadBay(s, s.bay); s.idleMs=0; } return ev; }
   if(s.reqNext){ s.reqNext=false;
-    if(s.cleared) advanceBay(s, ev);
-    else if(s.bay < LEVELS.length-1){ s.bay++; loadBay(s, s.bay); s.idleMs=0; }   // debug skip
+    if(s.cleared) advanceBay(s, ev);   // NEXT only advances a CLEARED bay — never skip an unsolved one
     return ev; }
   if(s.reqUndo){ s.reqUndo=false; if(!s.cleared){ if(doUndo(s)) s.idleMs=0; } return ev; }
   if(s.reqMove){ const d=s.reqMove; s.reqMove=null; if(!s.cleared && tryMove(s,d,ev)) s.idleMs=0; return ev; }
@@ -567,8 +566,7 @@ if(!HEADLESS){
     if(rulesO.classList.contains('show')) return;
     if(e.key==='u'||e.key==='U'){ if(active) s.reqUndo=true; e.preventDefault(); return; }
     if(e.key==='r'||e.key==='R'){ restartBay(); e.preventDefault(); return; }
-    if(e.key===']'||e.key==='Enter'||e.key===' '){ if(active) s.reqNext=true; e.preventDefault(); return; }
-    if(e.key==='['){ if(active) s.reqPrev=true; e.preventDefault(); return; }
+    if(e.key==='Enter'||e.key===' '){ if(active) s.reqNext=true; e.preventDefault(); return; }   // advance ONLY when the bay is cleared (see reqNext)
     if(!active)return; const d=KEYS[e.key]; if(d){ setHeld(d,true); e.preventDefault(); } });
   addEventListener('keyup',e=>{ const d=KEYS[e.key]; if(d) setHeld(d,false); });
 
