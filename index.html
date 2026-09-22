@@ -234,7 +234,7 @@ const CFG = { name:'DRUM PUSH', memoNS:'PUSH', chassis:'sink-leaderboard',
               subdomain:'push.finnstergram.com', port:9018, hero:106, accent:'#3a6ff7', entryOIL:25, scorePost:1 };
 
 /* ---- LEVEL PACK (ASCII, per spec §8; SWITCH/NARROW/SPIRAL rebuilt solvable — the
-   spec's originals were unclearable and §8 says fix them. All 12 solver-verified). --- */
+   spec's originals were unclearable and §8 says fix them. All 24 solver-verified). --- */
 const LEVELS = [
   { name:'INTRO',    par:4,  rows:["#####","#   #","# $ #","# .@#","#####"] },
   { name:'CORNER',   par:8,  rows:["######","#    #","# @$ #","#  . #","######"] },
@@ -248,6 +248,19 @@ const LEVELS = [
   { name:'BOX',      par:26, rows:["#########","#  # .  #","# $#$ $ #","#  @  . #","# . $ # #","#########"] },
   { name:'SPIRAL',   par:34, rows:["##########","#@       #","# ###### #","# #    # #","# # $$ # #","# # .. # #","# #  $ # #","# ###.## #","#        #","##########"] },
   { name:'VAULT',    par:44, rows:["##########","#  .. .  #","# $# $$  #","#  $@$ # #","#  #   . #","#   .$   #","##########"] },
+  // ---- bays 13-24: "beyond the vault" arc (all solver-verified 2026-09-22) ----
+  { name:'GATE',     par:10, rows:["#######","#  .  #","#  $  #","#  @  #","#     #","#######"] },
+  { name:'ELBOW',    par:14, rows:["#######","#.    #","#$    #","# @   #","#    ##","#######"] },
+  { name:'TRIO',     par:20, rows:["########","# . . .#","#      #","# $ $ $#","#  @   #","########"] },
+  { name:'LANES',    par:22, rows:["#########","# . . . #","# $ $ $ #","#       #","#   @   #","#########"] },
+  { name:'CROSS',    par:24, rows:["#######","#  .  #","# $$$ #","#. @ .#","# $ $ #","#  .  #","#######"] },
+  { name:'STORE',    par:26, rows:["#########","#.  #  .#","# $ # $ #","#   @   #","# $ # $ #","#.  #  .#","#########"] },
+  { name:'CANAL',    par:30, rows:["##########","#@       #","# $$$$$  #","#        #","#.....   #","##########"] },
+  { name:'PILLARS',  par:30, rows:["#########","#.     .#","# $ # $ #","#   #   #","# $ # $ #","#.  @  .#","#########"] },
+  { name:'DEPOT',    par:28, rows:["##########","#  ....  #","#  $$$$  #","#        #","#   @    #","##########"] },
+  { name:'MAZE',     par:34, rows:["##########","#@ #   . #","# $#  $  #","#  ## ## #","# .  $   #","#### #  .#","#        #","##########"] },
+  { name:'YARD',     par:38, rows:["##########","#.      .#","# $ ## $ #","#  #  #  #","# $ ## $ #","#.  @   .#","##########"] },
+  { name:'MEGAVAULT',par:44, rows:["#############","#.#.#.#.#.#.#","#$#$#$#$#$#$#","#           #","#     @     #","#############"] },
 ];
 
 const IDLE_CAP_MS = 120000;              // AFK ceiling: a no-input run ends (also the VERIFY termination path)
