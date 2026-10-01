@@ -728,18 +728,39 @@ if(!HEADLESS){
     nextBtn.disabled = !(active && s.cleared); }
 
   /* ================= RENDER (branded pixel art) ========================== */
-  function geom(){ const availH=CH-TOP-8, availW=CW-16;
-    let C=Math.floor(Math.min(availW/s.w, availH/s.h)); C=Math.max(20,Math.min(64,C));
-    const ox=Math.floor((CW - s.w*C)/2), oy=Math.floor(TOP + (availH - s.h*C)/2 + 6);
+  /* ---- BOARD SCALING -----------------------------------------------------
+     The tile size was capped at 64px, and nothing in the art needed that: the
+     hero is a 512px PNG and every other tile is drawn procedurally from C. The
+     cap cost the SMALL bays half the screen — and the small bays are the first
+     ones a new player sees. INTRO (5x5) filled 51% of the playfield width when
+     it could fill the height completely, and 10 of the 24 bays hit the cap.
+     The only honest ceiling is the point where the hero PNG would start being
+     upscaled; at 512px over a 3x supersampled backing that is ~170, so in
+     practice the playfield is the only limit, which is how it should be.
+     The board is centred between PADDED BOUNDS — top of the playfield to the
+     bottom of the canvas — rather than measured from one and nudged by the
+     other. The first version here subtracted the pad from the height budget
+     AND kept the old nudge, which cost the seven-row bays a pixel of tile for
+     nothing. Nothing regresses now; ten bays get bigger. */
+  const PAD=6, HERO_SRC=512;
+  function geom(){ const availH=CH-TOP-PAD*2, availW=CW-16;
+    const artMax=Math.floor((hero.naturalWidth||HERO_SRC)/SS);
+    let C=Math.floor(Math.min(availW/s.w, availH/s.h));
+    C=Math.max(20,Math.min(artMax,C));
+    const ox=Math.floor((CW - s.w*C)/2), oy=Math.floor(TOP + PAD + (availH - s.h*C)/2);
     return { C, ox, oy }; }
 
   function drawFloor(x,y,C){ ctx.fillStyle=((x+y)&1)?'#2a1f26':'#241a20'; ctx.fillRect(x,y,C,C);
     ctx.strokeStyle='rgba(255,255,255,.035)'; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,C-1,C-1); }
-  function drawWall(x,y,C){ ctx.fillStyle='#2a2229'; ctx.fillRect(x,y,C,C);
-    ctx.fillStyle='#5f4c57'; ctx.fillRect(x+1,y+1,C-2,C-2);
-    ctx.fillStyle='#7a6470'; ctx.fillRect(x+1,y+1,C-2,2); ctx.fillRect(x+1,y+1,2,C-2);       // top/left highlight
-    ctx.fillStyle='#3e323a'; ctx.fillRect(x+1,y+C-3,C-2,2); ctx.fillRect(x+C-3,y+1,2,C-2);   // shadow
-    ctx.fillStyle='#4a3b44'; ctx.fillRect(x+C*0.5-1,y+3,2,C-6); }                             // seam rivet line
+  /* bevel bands scale with the tile — they were fixed at 2px, which reads the
+     same at C=64 but turns a big tile into a flat slab. 0.035*64 = 2, so the
+     look at the old size is unchanged. */
+  function drawWall(x,y,C){ const i=Math.max(1,Math.round(C*0.016)), e=Math.max(2,Math.round(C*0.035));
+    ctx.fillStyle='#2a2229'; ctx.fillRect(x,y,C,C);
+    ctx.fillStyle='#5f4c57'; ctx.fillRect(x+i,y+i,C-i*2,C-i*2);
+    ctx.fillStyle='#7a6470'; ctx.fillRect(x+i,y+i,C-i*2,e); ctx.fillRect(x+i,y+i,e,C-i*2);       // top/left highlight
+    ctx.fillStyle='#3e323a'; ctx.fillRect(x+i,y+C-i-e,C-i*2,e); ctx.fillRect(x+C-i-e,y+i,e,C-i*2); // shadow
+    ctx.fillStyle='#4a3b44'; ctx.fillRect(x+C*0.5-e/2,y+e*1.5,e,C-e*3); }                         // seam rivet line
   function drawPlate(x,y,C,pulse){ const cx=x+C/2, cy=y+C/2, r=C*0.30;
     ctx.save();
     ctx.globalAlpha=0.35+0.25*pulse; ctx.fillStyle='#3ad6c0';
@@ -759,18 +780,20 @@ if(!HEADLESS){
     if(onPlate){ ctx.save(); ctx.globalAlpha=0.5; ctx.fillStyle='#57d977';
       ctx.beginPath(); ctx.arc(x+C/2,y+C/2,C*0.46,0,7); ctx.fill(); ctx.restore(); }
     // outline
-    rrect(px-2,py-2,w+4,h+4,r+2); ctx.fillStyle='#3e323a'; ctx.fill();
+    const o=Math.max(2,Math.round(C*0.03));                 // outline, was a fixed 2px
+    rrect(px-o,py-o,w+o*2,h+o*2,r+o); ctx.fillStyle='#3e323a'; ctx.fill();
     // body gradient (amber)
     const g=ctx.createLinearGradient(0,py,0,py+h); g.addColorStop(0,'#ffce7a'); g.addColorStop(.28,'#f2a03d'); g.addColorStop(1,'#b56a1e');
     rrect(px,py,w,h,r); ctx.fillStyle=g; ctx.fill();
     // hoops
     ctx.fillStyle='#c9772a'; ctx.fillRect(px, py+h*0.30, w, Math.max(2,C*0.06)); ctx.fillRect(px, py+h*0.64, w, Math.max(2,C*0.06));
     // left highlight
-    ctx.fillStyle='rgba(255,240,210,.55)'; ctx.fillRect(px+w*0.14, py+2, Math.max(2,C*0.07), h-4);
+    ctx.fillStyle='rgba(255,240,210,.55)'; ctx.fillRect(px+w*0.14, py+o, Math.max(2,C*0.07), h-o*2);
     // bot face
     const ex=onPlate?'#57ffb0':'#3ad6c0', eo=onPlate?'#1f7a4a':'#1a6f66';
     const ey=py+h*0.44, es=Math.max(2,C*0.10);
-    ctx.fillStyle=eo; ctx.fillRect(px+w*0.28-1, ey-1, es+2, es+2); ctx.fillRect(px+w*0.60-1, ey-1, es+2, es+2);
+    const eb=Math.max(1,Math.round(C*0.016));
+    ctx.fillStyle=eo; ctx.fillRect(px+w*0.28-eb, ey-eb, es+eb*2, es+eb*2); ctx.fillRect(px+w*0.60-eb, ey-eb, es+eb*2, es+eb*2);
     ctx.fillStyle=ex; ctx.fillRect(px+w*0.28, ey, es, es); ctx.fillRect(px+w*0.60, ey, es, es);
     ctx.fillStyle=eo; ctx.fillRect(px+w*0.30, py+h*0.72, w*0.42, Math.max(2,C*0.05)); // mouth
     if(flash>0){ ctx.save(); ctx.globalAlpha=flash*0.6; ctx.fillStyle='#fff'; rrect(px,py,w,h,r); ctx.fill(); ctx.restore(); }
@@ -791,11 +814,14 @@ if(!HEADLESS){
     }
     // facing chevron
     const cxp=x+C/2+dx*C*0.42, cyp=y+C/2+dy*C*0.42;
+    /* which way you are facing decides what you push, so it has to stay legible
+       at every tile size — it was 3px whether the tile was 20 or 64 */
+    const a=Math.max(3,C*0.047), b=Math.max(4,C*0.063);
     ctx.fillStyle='#f2a03d'; ctx.beginPath();
-    if(s.face==='l'){ ctx.moveTo(cxp+3,cyp-4); ctx.lineTo(cxp-3,cyp); ctx.lineTo(cxp+3,cyp+4); }
-    else if(s.face==='r'){ ctx.moveTo(cxp-3,cyp-4); ctx.lineTo(cxp+3,cyp); ctx.lineTo(cxp-3,cyp+4); }
-    else if(s.face==='u'){ ctx.moveTo(cxp-4,cyp+3); ctx.lineTo(cxp,cyp-3); ctx.lineTo(cxp+4,cyp+3); }
-    else { ctx.moveTo(cxp-4,cyp-3); ctx.lineTo(cxp,cyp+3); ctx.lineTo(cxp+4,cyp-3); }
+    if(s.face==='l'){ ctx.moveTo(cxp+a,cyp-b); ctx.lineTo(cxp-a,cyp); ctx.lineTo(cxp+a,cyp+b); }
+    else if(s.face==='r'){ ctx.moveTo(cxp-a,cyp-b); ctx.lineTo(cxp+a,cyp); ctx.lineTo(cxp-a,cyp+b); }
+    else if(s.face==='u'){ ctx.moveTo(cxp-b,cyp+a); ctx.lineTo(cxp,cyp-a); ctx.lineTo(cxp+b,cyp+a); }
+    else { ctx.moveTo(cxp-b,cyp-a); ctx.lineTo(cxp,cyp+a); ctx.lineTo(cxp+b,cyp-a); }
     ctx.fill();
   }
 
