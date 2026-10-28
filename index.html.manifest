@@ -1,8 +1,8 @@
 file=index.html
-sha256=86518e0947dc938f80b60c7b2aeb391f84f48537231ee5b23fa86c7b616169c7
-bytes=196615
+sha256=86b122eda2a62de384e5a850cfa8a194ae399542598a00c446671aeeda0fe25a
+bytes=197316
 test_mode=false
 prod_mint_count=1
 prod_treasury_count=1
 marker=
-generated=2026-10-28T16:18:42Z
+generated=2026-10-28T17:46:42Z
